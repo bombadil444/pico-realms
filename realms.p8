@@ -89,7 +89,7 @@ function _draw()
     camera(player.x - 64, player.y - 64)
     map(0,0)
 
-    if player.y >= enemy.y + enemy.height * tile_size / 2 then
+    if player.y >= enemy.y + enemy.height / 2 then
         enemy.draw()
         player.draw()
     else
@@ -103,7 +103,7 @@ end
 
 function init_objects()
     player = new_player(19, 7)
-    enemy = new_enemy('shadow', 25, 6)
+    enemy = new_enemy('shadow', 25, 8)
 end
 
 function draw_hud(p, e)
@@ -142,7 +142,8 @@ function init_object(x, y, width, height, speed, health)
 
         dead = false,
         invin = false,
-        anim_lock = false
+        anim_lock = false,
+        attacking = false
     }
 
     function o.set_anim(self, anim, lock)
@@ -151,6 +152,50 @@ function init_object(x, y, width, height, speed, health)
             self.anim = anim
             self.anim.reset()
         end
+    end
+
+    function o.collisions(self, attacker)
+        local ax = attacker.x
+        local ay = attacker.y
+
+        local sx = self.x
+        local sy = self.y
+        local sw = self.width
+        local sh = self.height
+
+        if attacker.attacking then
+            if attacker.facing == 'left' then
+                if ax >= sx and
+                   ax <= sx + attacker.width * 2 and
+                   ay <= sy + sh and
+                   ay >= sy - sh then
+                    return true
+                end
+            elseif attacker.facing == 'right' then
+                if ax <= sx and
+                   ax >= sx - attacker.width * 2 and
+                   ay <= sy + sh and
+                   ay >= sy - sh then
+                    return true
+                end
+            elseif attacker.facing == 'up' then
+                if ax <= sx + sw and
+                   ax >= sx - sw and
+                   ay >= sy and
+                   ay <= sy + attacker.height * 2 then
+                    return true
+                end
+            elseif attacker.facing == 'down' then
+                if ax <= sx + sw and
+                   ax >= sx - sw and
+                   ay <= sy and
+                   ay >= sy - attacker.height * 2 then
+                    return true
+                end
+            end
+        end
+
+        return false
     end
 
     return o
@@ -169,14 +214,13 @@ function new_player(x, y)
 
     p.moving = false
     p.visible = true
-    p.attacking = false
 
     function p.update()
         if time() - p.invin_start_time > p.invin_duration then
             p.invin = false
         end
         p.move()
-        p.collisions()
+        p.check_collisions()
         p.anim.update()
 
         if p.anim.done then
@@ -251,9 +295,15 @@ function new_player(x, y)
         p.dy = 0
     end
 
-    function p.collisions()
+    function p.check_collisions()
         local damage_tile = tile_type_area(p.x, p.y, p.width, p.height, 1)
         if damage_tile and not p.invin and not enemy.dead then
+            p.take_damage()
+        end
+
+        local damage = p:collisions(enemy)
+
+        if damage and not p.invin then
             p.take_damage()
         end
     end
@@ -297,22 +347,23 @@ function new_enemy(enem_type, x, y)
 end
 
 function init_enemy(x, y, width, height, speed, type)
-    local e = init_object(x, y, width, height, speed, 115)
+    local e = init_object(x, y, width * tile_size, height * tile_size, speed, 115)
 
     e.type = type
     e.anim = anims[e.type..'_'..e.facing]
     e.anim_lock = false
-    e.hurt_on_touch = true
+    e.hurt_on_touch = false
 
     function e.update()
         if not e.dead then
-            e.move()
-            e.collisions()
+            -- e.move()
+            e.check_collisions()
             e.attack()
             e.anim.update()
 
             if e.anim.done then
                 e.anim_lock = false
+                e.attacking = false
                 e:set_anim(anims[e.type..'_'..e.facing])
             end
         end
@@ -324,36 +375,8 @@ function init_enemy(x, y, width, height, speed, type)
         end
     end
 
-    function e.collisions()
-        local damage = false
-        local p = player
-
-        if p.attacking then
-            local start_x = e.x + e.width * tile_size
-            local end_y = e.y + e.height * tile_size
-            if p.facing == 'left' then
-                if p.x >= start_x - p.width and
-                   p.x <= start_x + tile_size - p.width / 1.5 and
-                   p.y >= e.y and
-                   p.y <= end_y + tile_size - p.height then
-                    damage = true
-                end
-            elseif p.facing == 'right' then
-                if p.x <= e.x + p.width / 1.5 and
-                   p.x >= e.x - tile_size - p.width / 1.5 and
-                   p.y >= e.y and
-                   p.y <= end_y + tile_size - p.height then
-                    damage = true
-                end
-            elseif p.facing == 'up' then
-                if p.x <= e.x + p.width and
-                   p.x >= e.x - tile_size - p.width and
-                   p.y >= e.y and
-                   p.y <= end_y + tile_size - p.height / 2 then
-                    damage = true
-                end
-            end
-        end
+    function e.check_collisions()
+        local damage = e:collisions(player)
 
         if damage and not e.invin then
             e.take_damage()
@@ -374,9 +397,9 @@ function init_enemy(x, y, width, height, speed, type)
             e.dx = -1
         end
 
-        if py > ey + e.height * tile_size / 2 then
+        if py > ey + e.height / 2 then
             e.dy = 1
-        elseif py < ey + e.height * tile_size / 2 then
+        elseif py < ey + e.height / 2 then
             e.dy = -1
         end
 
@@ -399,6 +422,7 @@ function init_enemy(x, y, width, height, speed, type)
         if e.type == 'shadow' then
             if round(e.x, 0) == round(p.x, 0) and e.y < p.y and e.y > p.y - 10 then
                 e:set_anim(anims[e.type..'_attack_'..e.facing], true)
+                e.attacking = true
             end
         end
     end
@@ -519,8 +543,8 @@ end
 function get_tile_type(x,y,tile_type)
     if tile_type == 1 and enemy.hurt_on_touch then
         local e = enemy
-        if x >= e.x and x <= e.x + (e.width * tile_size) and
-           y >= e.y and y <= e.y + (e.height * tile_size * 0.6) then
+        if x >= e.x and x <= e.x + e.width and
+           y >= e.y and y <= e.y + e.height then
             return true
         end
     else
@@ -634,7 +658,7 @@ __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000055550055000000000000000000000000000000000000000000000000000000000000000000000000
 __gff__
-0100010101010101010000000000000000000100010101010100000000000000000000000000010000000000000000010000000000010202010101010101010100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0100010101010101010000000000000000000100010101010100000000000000000000000000010000000000000000010000000000010202010101010101010100000000000000000000000000000000000002020202000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __map__
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005800000000000000003300000031000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
