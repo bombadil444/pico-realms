@@ -1,5 +1,5 @@
 pico-8 cartridge // http://www.pico-8.com
-version 11
+version 16
 __lua__
 --realms
 --author: bombadil
@@ -473,13 +473,13 @@ end
 --inputs
 function handle_inputs()
     --set direction player wants to move in
-    if btn(ã)        then player.set_direction('left')
-       elseif btn(ë) then player.set_direction('right')
-       elseif btn(î) then player.set_direction('up')
-       elseif btn(É) then player.set_direction('down')
+    if btn(‚¨ÖÔ∏è)        then player.set_direction('left')
+       elseif btn(‚û°Ô∏è) then player.set_direction('right')
+       elseif btn(‚¨ÜÔ∏è) then player.set_direction('up')
+       elseif btn(‚¨áÔ∏è) then player.set_direction('down')
     end
 
-    if btnp(ó) then
+    if btnp(‚ùé) then
         player.attack()
     end
 end
