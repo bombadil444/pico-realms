@@ -75,7 +75,10 @@ end
 
 function _draw()
     cls()
-    map(0,0)
+
+    camera(player.x - 64, player.y - 64)
+
+    map(0,0,0,0)
     if player.y >= enemy.y + enemy.height * tile_size / 2 then
         enemy.draw()
         player.draw()
@@ -92,10 +95,10 @@ function reset()
 end
 
 function draw_hud(p, e)
-    draw_health(5, 10, 39, 40, 8, p)
+    draw_health(p.x - 60, p.y - 60, 39, 40, 8, p)
     if not enemy.dead then
-        draw_health(5, 115, 41, 42, 1, e)
-        print('BOSS', 5, 110)
+        draw_health(p.x - 57, p.y + 50, 41, 42, 1, e)
+        print('boss', p.x - 57, p.y + 45)
     end
 end
 
@@ -121,8 +124,8 @@ end
 function new_player()
     local p = {}
 
-    p.x = 4 * tile_size
-    p.y = 8 * tile_size
+    p.x = 19 * tile_size
+    p.y = 7 * tile_size
     p.width = 5
     p.height = 7
     p.speed = 1.3
@@ -269,7 +272,7 @@ function new_enemy(enem_type)
     if enem_type == 'worm' then
         e = init_enemy(4,4,1,2,'worm_idle')
     elseif enem_type == 'knight_queen' then
-        e = init_enemy(10,6,2,4,'knight_queen')
+        e = init_enemy(25,6,2,4,'knight_queen')
     end
 
     return e
