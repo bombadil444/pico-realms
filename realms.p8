@@ -19,47 +19,56 @@ function _init()
     sprites = {}
     anims = {}
 
+    --////////////////////
     --composite sprites
+    --////////////////////
     sprites['worm'] = new_composite_sprite(1,2,{38,54})
-
     sprites['knight_queen'] = new_composite_sprite(2,4,{64,65,80,81,96,97,112,113})
 
-    --animations
-    anims['player_idle_down']  = new_anim({9})
-    anims['player_idle_right'] = new_anim({10})
-    anims['player_idle_left']  = new_anim({12})
-    anims['player_idle_up']  = new_anim({11})
 
-    anims['sword_attack_down'] = new_anim({new_composite_sprite(1,2,{9,25}),
+    --////////////////////
+    --animations
+    --////////////////////
+    anims['player_down']  = new_anim({9})
+    anims['player_right'] = new_anim({10})
+    anims['player_left']  = new_anim({12})
+    anims['player_up']  = new_anim({11})
+
+    anims['player_attack_down'] = new_anim({new_composite_sprite(1,2,{9,25}),
                                            new_composite_sprite(1,2,{9,26}),
                                            new_composite_sprite(1,2,{9,27}),
                                            new_composite_sprite(1,2,{9,28})},
                                            {speed=0.4, loop=false, flip_x = false})
 
-    anims['sword_attack_right'] = new_anim({new_composite_sprite(2,1,{29,30}),
+    anims['player_attack_right'] = new_anim({new_composite_sprite(2,1,{29,30}),
                                             new_composite_sprite(2,1,{32,33}),
                                             new_composite_sprite(2,1,{32,34})},
                                             {speed=0.4, loop=false, flip_x = false})
 
-    anims['sword_attack_left'] = new_anim({new_composite_sprite(2,1,{30,29},2,1,true),
+    anims['player_attack_left'] = new_anim({new_composite_sprite(2,1,{30,29},2,1,true),
                                             new_composite_sprite(2,1,{33,32},2,1,true),
                                             new_composite_sprite(2,1,{34,32},2,1,true)},
                                             {speed=0.4, loop=false, flip_x = false})
 
-    anims['sword_attack_up'] = new_anim({new_composite_sprite(1,2,{35,11},1,2),
+    anims['player_attack_up'] = new_anim({new_composite_sprite(1,2,{35,11},1,2),
                                          new_composite_sprite(1,2,{36,11},1,2),
                                          new_composite_sprite(1,2,{37,11},1,2)},
                                          {speed=0.4, loop=false, flip_x = false})
 
-    anims['worm_idle'] = new_anim({sprites['worm'],
+    anims['worm_down'] = new_anim({sprites['worm'],
                                    new_composite_sprite(1,2,{38,55})},
                                   {speed=0.05, loop=true, flip_x = false})
 
-    anims['knight_queen'] = new_anim({sprites['knight_queen']})
+    anims['knight_queen_down'] = new_anim({sprites['knight_queen_down']})
 
-    player = new_player()
-    enemy_type = 'knight_queen'
-    enemy = new_enemy(enemy_type)
+    anims['shadow_down'] = new_anim({66})
+    anims['shadow_attack_down'] = new_anim({new_composite_sprite(1,2,{66,82}),
+                                            new_composite_sprite(1,2,{66,83}),
+                                            new_composite_sprite(1,2,{66,84}),
+                                            new_composite_sprite(1,2,{66,85})},
+                                            {speed=0.4, loop=false, flip_x = false})
+
+    init_objects()
     --music(0,0,4)
 end
 
@@ -69,7 +78,7 @@ function _update()
     enemy.update()
 
     if player.dead then
-        reset()
+        init_objects()
     end
 end
 
@@ -77,8 +86,8 @@ function _draw()
     cls()
 
     camera(player.x - 64, player.y - 64)
+    map(0,0)
 
-    map(0,0,0,0)
     if player.y >= enemy.y + enemy.height * tile_size / 2 then
         enemy.draw()
         player.draw()
@@ -86,24 +95,27 @@ function _draw()
         player.draw()
         enemy.draw()
     end
+
     draw_hud(player, enemy)
+
+    --log(round(enemy.y,0), 0)
 end
 
-function reset()
-    player = new_player()
-    enemy = new_enemy(enemy_type)
+function init_objects()
+    player = new_player(19, 7)
+    enemy = new_enemy('shadow', 25, 6)
 end
 
 function draw_hud(p, e)
     draw_health(p.x - 60, p.y - 60, 39, 40, 8, p)
     if not enemy.dead then
         draw_health(p.x - 57, p.y + 50, 41, 42, 1, e)
-        print('boss', p.x - 57, p.y + 45)
+        print(enemy.type, p.x - 57, p.y + 45)
     end
 end
 
 function draw_health(x, y, spr_full, spr_empty, x_space, entity)
-    for i=0, entity.max_health - 1 do
+    for i = 0, entity.max_health - 1 do
         if i >= entity.health then
             hb_spr = spr_empty
         else
@@ -114,38 +126,49 @@ function draw_health(x, y, spr_full, spr_empty, x_space, entity)
     end
 end
 
-function round(number, digits)
-    shift = 10 ^ digits
-    return flr(number * shift + 0.5 ) / shift
+function init_object(x, y, width, height, speed, health)
+    local o = {
+        x = x * tile_size,
+        y = y * tile_size,
+        dx = 0,
+        dy = 0,
+        width = width,
+        height = height,
+        speed = speed,
+        facing = 'down',
+
+        max_health = health,
+        health = health,
+
+        dead = false,
+        invin = false,
+        anim_lock = false
+    }
+
+    function o.set_anim(self, anim, lock)
+        if not self.anim_lock then
+            self.anim_lock = lock or false
+            self.anim = anim
+            self.anim.reset()
+        end
+    end
+
+    return o
 end
 
--->8
+
+--//////////////
 --player
-function new_player()
-    local p = {}
+--//////////////
+function new_player(x, y)
+    local p = init_object(x, y, 5, 7, 1.3, 5)
 
-    p.x = 19 * tile_size
-    p.y = 7 * tile_size
-    p.width = 5
-    p.height = 7
-    p.speed = 1.3
-    p.anim=anims['player_idle_down']
-    p.anim_lock = false
-
-    p.max_health = 5
-    p.health = 5
-
-    p.dx = 0
-    p.dy = 0
-
-    p.moving = false
-    p.facing = 'down'
-    p.invin = false
+    p.anim = anims['player_down']
     p.invin_start_time = time()
     p.invin_duration = 2
 
+    p.moving = false
     p.visible = true
-    p.dead = false
     p.attacking = false
 
     function p.update()
@@ -160,9 +183,9 @@ function new_player()
             p.anim_lock = false
             if p.attacking then
                 p.attacking = false
-                enemy.invinsible = false
+                enemy.invin = false
             end
-            p.set_anim(anims['player_idle_'..p.facing])
+            p:set_anim(anims['player_'..p.facing])
         end
     end
 
@@ -181,14 +204,6 @@ function new_player()
         end
     end
 
-    function p.set_anim(anim, lock)
-        if not p.anim_lock then
-            p.anim_lock = lock or false
-            p.anim = anim
-            p.anim.reset()
-        end
-    end
-
     --movement
     function p.set_direction(d)
         if d == 'left' then
@@ -201,22 +216,22 @@ function new_player()
             p.dy = 1
         end
         p.facing = d
-        p.set_anim(anims['player_idle_'..p.facing])
+        p:set_anim(anims['player_'..p.facing])
     end
 
     function p.attack()
-        p.set_anim(anims['sword_attack_'..p.facing], true)
+        p:set_anim(anims['player_attack_'..p.facing], true)
         p.attacking = true
     end
 
     function p.move()
-        orig_x = p.x
-        orig_y = p.y
+        local orig_x = p.x
+        local orig_y = p.y
 
-        new_x = p.x + p.dx * p.speed
-        new_y = p.y + p.dy * p.speed
+        local new_x = p.x + p.dx * p.speed
+        local new_y = p.y + p.dy * p.speed
 
-        solid_tile = tile_type_area(new_x, new_y, p.width, p.height, 0)
+        local solid_tile = tile_type_area(new_x, new_y, p.width, p.height, 0)
 
         --check if moving into wall
         if not solid_tile then
@@ -237,7 +252,7 @@ function new_player()
     end
 
     function p.collisions()
-        damage_tile = tile_type_area(p.x, p.y, p.width, p.height, 1)
+        local damage_tile = tile_type_area(p.x, p.y, p.width, p.height, 1)
         if damage_tile and not p.invin and not enemy.dead then
             p.take_damage()
         end
@@ -268,36 +283,38 @@ function new_player()
 end
 
 
-function new_enemy(enem_type)
+--//////////////////
+--enemy
+--//////////////////
+function new_enemy(enem_type, x, y)
     if enem_type == 'worm' then
-        e = init_enemy(4,4,1,2,'worm_idle')
+        return init_enemy(x,y,1,2,0,enem_type)
     elseif enem_type == 'knight_queen' then
-        e = init_enemy(25,6,2,4,'knight_queen')
+        return init_enemy(x,y,2,4,0.2,enem_type)
+    elseif enem_type == 'shadow' then
+        return init_enemy(x,y,1,1,0.4,enem_type)
     end
-
-    return e
 end
 
-function init_enemy(x, y, width, height, anim)
-    e = {}
-    e.x = x * tile_size
-    e.y = y * tile_size
-    e.width = width
-    e.height = height
-    e.max_health = 115
-    e.health = 115
-    e.dead = false
-    e.anim = anims[anim]
-    e.invinsible = false
-    e.dx = 0
-    e.dy = 0
-    e.speed = 0.2
+function init_enemy(x, y, width, height, speed, type)
+    local e = init_object(x, y, width, height, speed, 115)
+
+    e.type = type
+    e.anim = anims[e.type..'_'..e.facing]
+    e.anim_lock = false
+    e.hurt_on_touch = true
 
     function e.update()
         if not e.dead then
             e.move()
             e.collisions()
+            e.attack()
             e.anim.update()
+
+            if e.anim.done then
+                e.anim_lock = false
+                e:set_anim(anims[e.type..'_'..e.facing])
+            end
         end
     end
 
@@ -308,12 +325,12 @@ function init_enemy(x, y, width, height, anim)
     end
 
     function e.collisions()
-        damage = false
+        local damage = false
+        local p = player
 
-        p = player
         if p.attacking then
-            start_x = e.x + e.width * tile_size
-            end_y = e.y + e.height * tile_size
+            local start_x = e.x + e.width * tile_size
+            local end_y = e.y + e.height * tile_size
             if p.facing == 'left' then
                 if p.x >= start_x - p.width and
                    p.x <= start_x + tile_size - p.width / 1.5 and
@@ -338,18 +355,18 @@ function init_enemy(x, y, width, height, anim)
             end
         end
 
-        if damage and not e.invinsible then
+        if damage and not e.invin then
             e.take_damage()
-            e.invinsible = true
+            e.invin = true
         end
     end
 
     function e.move()
-        px = round(player.x, 0)
-        py = round(player.y, 0)
+        local px = round(player.x, 0)
+        local py = round(player.y, 0)
 
-        ex = round(e.x, 0)
-        ey = round(e.y, 0)
+        local ex = round(e.x, 0)
+        local ey = round(e.y, 0)
 
         if px > ex then
             e.dx = 1
@@ -377,11 +394,22 @@ function init_enemy(x, y, width, height, anim)
         end
     end
 
+    function e.attack()
+        local p = player
+        if e.type == 'shadow' then
+            if round(e.x, 0) == round(p.x, 0) and e.y < p.y and e.y > p.y - 10 then
+                e:set_anim(anims[e.type..'_attack_'..e.facing], true)
+            end
+        end
+    end
+
     return e
 end
 
--->8
+
+--////////////////////
 --sprites + animation
+--////////////////////
 function new_composite_sprite(width, height, sprites, x_origin, y_origin, flip_x)
     local s = {}
     s.width = width
@@ -415,9 +443,9 @@ function new_frame_set(frames)
 end
 
 function new_anim(frame_set, args)
-    args = args or {speed = default_anim_speed,
-                    loop = true,
-                    flip_x = false}
+    local args = args or {speed = default_anim_speed,
+                          loop = true,
+                          flip_x = false}
 
     local a = {}
     a.frame_set = new_frame_set(frame_set)
@@ -470,9 +498,9 @@ function new_anim(frame_set, args)
 end
 
 
--->8
+--////////////////
 --misc
-
+--////////////////
 --inputs
 function handle_inputs()
     --set direction player wants to move in
@@ -487,11 +515,10 @@ function handle_inputs()
     end
 end
 
-
 --collision detection
 function get_tile_type(x,y,tile_type)
-    if tile_type == 1 then
-        e = enemy
+    if tile_type == 1 and enemy.hurt_on_touch then
+        local e = enemy
         if x >= e.x and x <= e.x + (e.width * tile_size) and
            y >= e.y and y <= e.y + (e.height * tile_size * 0.6) then
             return true
@@ -516,6 +543,16 @@ function play_sound(track)
         sfx(track)
     end
 end
+
+function round(number, digits)
+    local shift = 10 ^ digits
+    return flr(number * shift + 0.5 ) / shift
+end
+
+function log(log_text, offset)
+    print(log_text, player.x + 30, player.y - 55 + (10 * offset))
+end
+
 
 __gfx__
 000000001dd11dd1111111dddddddddd111111dddddddddd11111111dd111111dddddddd02222000022220000222200002222000000000001111000000000000
@@ -550,21 +587,21 @@ __gfx__
 00066000000660000006600000006600777777775555552206066060000000005555555555555555555555555553555322555555225555555555552200050055
 00066000000660000006660000066600777777775555552206000060000000005555555555555555555555555553555322555555225555555555552200055555
 00666000006660000066666000666660777777775555552200600600000000005555555555555555555555555553555322555555225555555555552200055555
-00000000000090000000000000000000000000005555555500000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000090000000000000000000000000005555555500000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000090000000000000000000000000005556655500000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000090000000000000000000000000005565665500000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000090000000000000000000000000005566565500000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000090000000000000000000000000005556655500000000000000000000000000000000000000000000000000000000000000000000000000000000
-09000900090090000000000000000000000000005555555500000000000000000000000000000000000000000000000000000000000000000000000000000000
-09909990990090000000000000000000000000005555555500000000000000000000000000000000000000000000000000000000000000000000000000000000
-09999999990090000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-07727272770090000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00727272700090000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00727272700090200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00777777700090200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00077777000090200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00007270000090200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000090000555500005555000000000005555555500000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000090005555550055555500000000005555555500000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000090005555550055555500000000005556655500000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000090005877850055578700000000005565665500000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000090005777750055777700000000005566565500000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000090006666660066666600000000005556655500000000000000000000000000000000000000000000000000000000000000000000000000000000
+09000900090090005665550055566500000000005555555500000000000000000000000000000000000000000000000000000000000000000000000000000000
+09909990990090005665550055566500000000005555555500000000000000000000000000000000000000000000000000000000000000000000000000000000
+09999999990090007775770000007700000007000000070000000000000000000000000000000000000000000000000000000000000000000000000000000000
+07727272770090000005000000055500000055500000555000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00727272700090000000000007770000000070000000070000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00727272700090200000000077000000000770000000070000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00777777700090200000000000000000000700000000070000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00077777000090200000000000000000007700000000070000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00007270000090200000000000000000007000000000070000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00777277777022200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 07707270007790000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 07007270000090000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
