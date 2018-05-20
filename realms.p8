@@ -134,7 +134,7 @@ function new_player()
 
     p.dx = 0
     p.dy = 0
-    
+
     p.moving = false
     p.facing = 'down'
     p.invin = false
@@ -175,7 +175,7 @@ function new_player()
 
         if p.visible then
             p.anim.draw_frame(p.x,p.y)
-        end            
+        end
     end
 
     function p.set_anim(anim, lock)
@@ -311,7 +311,7 @@ function init_enemy(x, y, width, height, anim)
         if p.attacking then
             start_x = e.x + e.width * tile_size
             end_y = e.y + e.height * tile_size
-            if p.facing == 'left' then                
+            if p.facing == 'left' then
                 if p.x >= start_x - p.width and
                    p.x <= start_x + tile_size - p.width / 1.5 and
                    p.y >= e.y and
@@ -439,12 +439,12 @@ function new_anim(frame_set, args)
         if (a.done) return
 
         a.timer += a.speed
-        
+
         while a.timer >= 1 do
             a.frame_index += 1
-            a.timer -= 1      
+            a.timer -= 1
         end
-       
+
         if a.frame_index > #a.frame_set.frames then
             if a.loop then
                 a.reset()
@@ -500,7 +500,7 @@ function get_tile_type(x,y,tile_type)
 end
 
 function tile_type_area(x,y,w,h,tile_type)
-    return 
+    return
     get_tile_type(x,y,tile_type) or
     get_tile_type(x+w,y,tile_type) or
     get_tile_type(x,y+h,tile_type) or
