@@ -18,6 +18,7 @@ function _init()
 
     sprites = {}
     anims = {}
+    logs = {}
 
     --////////////////////
     --composite sprites
@@ -97,8 +98,7 @@ function _draw()
     end
 
     draw_hud(player, enemy)
-
-    --log(round(enemy.y,0), 0)
+    print_logs()
 end
 
 function init_objects()
@@ -549,10 +549,16 @@ function round(number, digits)
     return flr(number * shift + 0.5 ) / shift
 end
 
-function log(log_text, offset)
-    print(log_text, player.x + 30, player.y - 55 + (10 * offset))
+function log(log_text)
+    logs[#logs+1] = log_text
 end
 
+function print_logs()
+    for i = 1, #logs do
+        print(logs[i], player.x + 10, player.y - 70 + (10 * i))
+    end
+    logs = {}
+end
 
 __gfx__
 000000001dd11dd1111111dddddddddd111111dddddddddd11111111dd111111dddddddd02222000022220000222200002222000000000001111000000000000
