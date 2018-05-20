@@ -97,7 +97,7 @@ function _draw()
         enemy.draw()
     end
 
-    draw_hud(player, enemy)
+    draw_hud()
     print_logs()
 end
 
@@ -106,11 +106,14 @@ function init_objects()
     enemy = new_enemy('shadow', 25, 8)
 end
 
-function draw_hud(p, e)
-    draw_health(p.x - 60, p.y - 60, 39, 40, 8, p)
+function draw_hud()
+    local px = player.x
+    local py = player.y
+
+    draw_health(px - 60, py - 60, 39, 40, 8, player)
     if not enemy.dead then
-        draw_health(p.x - 57, p.y + 50, 41, 42, 1, e)
-        print(enemy.type, p.x - 57, p.y + 45)
+        draw_health(px - 57, py + 50, 41, 42, 1, enemy)
+        print(enemy.type, px - 57, py + 45)
     end
 end
 
