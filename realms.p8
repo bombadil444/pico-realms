@@ -262,8 +262,10 @@ function new_player(x, y)
         else
             p.dy = 1
         end
-        p.facing = d
-        p:set_anim(anims['player_'..p.facing])
+        if not btn(4) then
+            p.facing = d
+            p:set_anim(anims['player_'..p.facing])
+        end
     end
 
     function p.attack()
