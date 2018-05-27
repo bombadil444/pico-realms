@@ -351,34 +351,33 @@ end
 
 function init_shadow(x, y, width, height, speed)
     local shad = init_enemy(x, y, width, height, speed, 'shadow')
+    local wind_up_left = {new_attack_bit(0.3, 0, 0.3),
+                          new_attack_bit(-2.5, 0, 0.2, anims['shadow_attack_down']),
+                          new_attack_bit(0, 0, 0.4)}
 
     function shad.attack()
         local p = player
-        -- basic script
-        --[[if round(shad.x, 0) == round(p.x, 0) and shad.y < p.y and shad.y > p.y - 10 then
-            shad:set_anim(anims[shad.type..'_attack_'..shad.facing], true)
-            shad.attacking = true
-        end--]]
-
-        -- wind up attack
-        if not shad.attacking then
-            shad.attacking = true
-            shad.attack_start = time()
+        if round(shad.y, 0) == round(p.y, 0) and shad.x > p.x and shad.x < p.x + 50 then
+            if not shad.attacking then
+                shad.attacking = true
+                shad.attack_seq = wind_up_left
+                shad.attack_start_time = time()
+            end
         end
-
-        shad.attack_seq({new_attack_bit(0.1, 0, 1),
-                         new_attack_bit(-2.5, 0, 0.2),
-                         new_attack_bit(0, 0, 0.8)})
+        if shad.attacking and shad.attack_seq then
+            shad.attack_execute()
+        end
     end
 
     return shad
 end
 
-function new_attack_bit(x_mod, y_mod, duration)
+function new_attack_bit(x_mod, y_mod, duration, anim)
     local ab = {}
     ab.x_mod = x_mod
     ab.y_mod = y_mod
     ab.duration = duration
+    ab.anim = anim or nil
 
     return ab
 end
@@ -391,18 +390,20 @@ function init_enemy(x, y, width, height, speed, type)
     e.anim_lock = false
     e.hurt_on_touch = false
     e.attacking = false
-    e.attack_start = 0
+    e.attack_start_time = 0
+    e.attack_seq = nil
 
     function e.update()
         if not e.dead then
-            -- e.move()
+            if not e.attacking then
+              e.move()
+            end
             e.check_collisions()
             e.anim.update()
             e.attack()
 
             if e.anim.done then
                 e.anim_lock = false
-                e.attacking = false
                 e:set_anim(anims[e.type..'_'..e.facing])
             end
         end
@@ -456,19 +457,22 @@ function init_enemy(x, y, width, height, speed, type)
         end
     end
 
-    function e.attack_seq(attacks)
+    function e.attack_execute()
         local total_time = 0
-        for i = 1, #attacks do
+        for i = 1, #e.attack_seq do
             if i == 1 then
                 total_time = 0
             end
-            local curr_attack = attacks[i]
+            local curr_attack = e.attack_seq[i]
             total_time += curr_attack.duration
-            if e.attack_start > time() - total_time then
+            if e.attack_start_time > time() - total_time then
                 e.x += curr_attack.x_mod
                 e.y += curr_attack.y_mod
+                if curr_attack.anim then
+                    e:set_anim(curr_attack.anim, true)
+                end
                 break
-            elseif i == #attacks and e.attack_start < time() - total_time then
+            elseif i == #e.attack_seq and e.attack_start_time < time() - total_time then
                 e.attacking = false
             end
         end
