@@ -14,6 +14,7 @@ __lua__
 function _init()
     tile_size = 8
     sound_enabled = false
+    --music(0,0,4)
 
     sprites = {}
     anims = {}
@@ -58,7 +59,7 @@ function _init()
     anims['knight_queen_down'] = new_anim({sprites['knight_queen_down']})
 
     anims['shadow_down'] = new_anim({66})
-    anims['shadow_attack_down'] = new_anim({new_frame(66, {dur=0.3, xmod=0.3, ymod=0}),
+    anims['shadow_attack_down'] = new_anim({new_frame(66, {dur=0.4, xmod=0.3, ymod=0}),
                                             new_frame(new_composite_sprite(1,2,{66,82}),
                                                     {dur=0.1, xmod=-4, ymod=0}),
                                             new_frame(new_composite_sprite(1,2,{66,83}),
@@ -70,9 +71,21 @@ function _init()
                                             new_frame(66, {dur=1, xmod=0, ymod=0})},
                                             {is_attack = true})
 
+    anims['shadow_attack_right'] = new_anim({new_frame(66, {dur=0.4, xmod=0.3, ymod=0}),
+                                            new_frame(new_composite_sprite(1,2,{66,82}),
+                                                    {dur=0.1, xmod=-4, ymod=0}),
+                                            new_frame(new_composite_sprite(1,2,{66,83}),
+                                                    {dur=0, xmod=-2.5, ymod=0}),
+                                            new_frame(new_composite_sprite(1,2,{66,84}),
+                                                    {dur=0, xmod=-2.5, ymod=0}),
+                                            new_frame(new_composite_sprite(1,2,{66,85}),
+                                                    {dur=0, xmod=-2.5, ymod=0}),
+                                            new_frame(66, {dur=1, xmod=0, ymod=0})},
+                                            {is_attack = true, flip_x=true})
+
     init_objects()
     anims['shadow_attack_down'].set_obj(enemy)
-    --music(0,0,4)
+    anims['shadow_attack_right'].set_obj(enemy)
 end
 
 function _update()
@@ -358,9 +371,13 @@ function init_shadow(x, y, width, height, speed)
 
     function shad.attack()
         local p = player
-        if not shad.attacking and
-        round(shad.y, 0) == round(p.y, 0) and shad.x > p.x and shad.x < p.x + 50 then
-            shad:set_anim(anims['shadow_attack_down'])
+        if not shad.attacking then
+            if round(shad.y, 0) == round(p.y, 0) and shad.x > p.x and shad.x < p.x + 50 then
+                shad:set_anim(anims['shadow_attack_down'])
+            elseif round(shad.y, 0) == round(p.y, 0) and shad.x > p.x - 50 and shad.x < p.x then
+                shad:set_anim(anims['shadow_attack_right'])
+
+            end
         end
     end
 
@@ -553,7 +570,11 @@ function new_anim(frame_set, args)
         end
 
         if a.object then
-            a.object.x += curr_frame.xmod
+            local flipx = 1
+            if a.flip_x then
+                flipx = -1
+            end
+            a.object.x += curr_frame.xmod * flipx
             a.object.y += curr_frame.ymod
         end
     end
