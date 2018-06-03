@@ -13,7 +13,6 @@ __lua__
 
 function _init()
     tile_size = 8
-    default_anim_speed = 0.1
     sound_enabled = false
 
     sprites = {}
@@ -35,41 +34,44 @@ function _init()
     anims['player_left']  = new_anim({12})
     anims['player_up']  = new_anim({11})
 
-    anims['player_attack_down'] = new_anim({new_composite_sprite(1,2,{9,25}),
-                                           new_composite_sprite(1,2,{9,26}),
-                                           new_composite_sprite(1,2,{9,27}),
-                                           new_composite_sprite(1,2,{9,28})},
-                                           {speed=0.4, loop=false, flip_x = false})
+    anims['player_attack_down'] = new_anim({new_frame(new_composite_sprite(1,2,{9,25})),
+                                           new_frame(new_composite_sprite(1,2,{9,26})),
+                                           new_frame(new_composite_sprite(1,2,{9,27})),
+                                           new_frame(new_composite_sprite(1,2,{9,28}))})
 
-    anims['player_attack_right'] = new_anim({new_composite_sprite(2,1,{29,30}),
-                                            new_composite_sprite(2,1,{32,33}),
-                                            new_composite_sprite(2,1,{32,34})},
-                                            {speed=0.4, loop=false, flip_x = false})
+    anims['player_attack_right'] = new_anim({new_frame(new_composite_sprite(2,1,{29,30})),
+                                            new_frame(new_composite_sprite(2,1,{32,33})),
+                                            new_frame(new_composite_sprite(2,1,{32,34}))})
 
-    anims['player_attack_left'] = new_anim({new_composite_sprite(2,1,{30,29},2,1,true),
-                                            new_composite_sprite(2,1,{33,32},2,1,true),
-                                            new_composite_sprite(2,1,{34,32},2,1,true)},
-                                            {speed=0.4, loop=false, flip_x = false})
+    anims['player_attack_left'] = new_anim({new_frame(new_composite_sprite(2,1,{30,29},2,1,true)),
+                                            new_frame(new_composite_sprite(2,1,{33,32},2,1,true)),
+                                            new_frame(new_composite_sprite(2,1,{34,32},2,1,true))})
 
-    anims['player_attack_up'] = new_anim({new_composite_sprite(1,2,{35,11},1,2),
-                                         new_composite_sprite(1,2,{36,11},1,2),
-                                         new_composite_sprite(1,2,{37,11},1,2)},
-                                         {speed=0.4, loop=false, flip_x = false})
+    anims['player_attack_up'] = new_anim({new_frame(new_composite_sprite(1,2,{35,11},1,2)),
+                                         new_frame(new_composite_sprite(1,2,{36,11},1,2)),
+                                         new_frame(new_composite_sprite(1,2,{37,11},1,2))})
 
     anims['worm_down'] = new_anim({sprites['worm'],
-                                   new_composite_sprite(1,2,{38,55})},
-                                  {speed=0.05, loop=true, flip_x = false})
+                                   new_frame(new_composite_sprite(1,2,{38,55}))},
+                                  {loop=true})
 
     anims['knight_queen_down'] = new_anim({sprites['knight_queen_down']})
 
     anims['shadow_down'] = new_anim({66})
-    anims['shadow_attack_down'] = new_anim({new_composite_sprite(1,2,{66,82}, 0.3),
-                                            new_composite_sprite(1,2,{66,83}, 0.0),
-                                            new_composite_sprite(1,2,{66,84}, 0.0),
-                                            new_composite_sprite(1,2,{66,85}, 0.4)},
-                                            {speed=1, loop=false, flip_x = false, log = true})
+    anims['shadow_attack_down'] = new_anim({new_frame(66, {dur=0.3, xmod=0.3, ymod=0}),
+                                            new_frame(new_composite_sprite(1,2,{66,82}),
+                                                    {dur=0.1, xmod=-4, ymod=0}),
+                                            new_frame(new_composite_sprite(1,2,{66,83}),
+                                                    {dur=0, xmod=-2.5, ymod=0}),
+                                            new_frame(new_composite_sprite(1,2,{66,84}),
+                                                    {dur=0, xmod=-2.5, ymod=0}),
+                                            new_frame(new_composite_sprite(1,2,{66,85}),
+                                                    {dur=0, xmod=-2.5, ymod=0}),
+                                            new_frame(66, {dur=1, xmod=0, ymod=0})},
+                                            {is_attack = true})
 
     init_objects()
+    anims['shadow_attack_down'].set_obj(enemy)
     --music(0,0,4)
 end
 
@@ -353,52 +355,31 @@ end
 
 function init_shadow(x, y, width, height, speed)
     local shad = init_enemy(x, y, width, height, speed, 'shadow')
-    local wind_up_left = {new_attack_bit(0.3, 0, 0.3),
-                          new_attack_bit(-2.5, 0, 0.2, anims['shadow_attack_down']),
-                          new_attack_bit(0, 0, 0.4)}
 
     function shad.attack()
         local p = player
-        if round(shad.y, 0) == round(p.y, 0) and shad.x > p.x and shad.x < p.x + 50 then
-            if not shad.attacking then
-                --shad.attacking = true
-                --shad.attack_seq = wind_up_left
-               -- shad.attack_start_time = time()
-            end
-        end
-        if shad.attacking and shad.attack_seq then
-            -- shad.attack_execute()
+        if not shad.attacking and
+        round(shad.y, 0) == round(p.y, 0) and shad.x > p.x and shad.x < p.x + 50 then
+            shad:set_anim(anims['shadow_attack_down'])
         end
     end
 
     return shad
 end
 
-function new_attack_bit(x_mod, y_mod, duration, anim)
-    local ab = {}
-    ab.x_mod = x_mod
-    ab.y_mod = y_mod
-    ab.duration = duration
-    ab.anim = anim or nil
-
-    return ab
-end
-
 function init_enemy(x, y, width, height, speed, type)
     local e = init_object(x, y, width * tile_size, height * tile_size, speed, 115)
 
     e.type = type
-    e.anim = anims['shadow_attack_down']
+    e.anim = anims[e.type..'_'..e.facing]
     e.anim_lock = false
     e.hurt_on_touch = false
     e.attacking = false
-    e.attack_start_time = 0
-    e.attack_seq = nil
 
     function e.update()
         if not e.dead then
             if not e.attacking then
-    --          e.move()
+                e.move()
             end
             e.check_collisions()
             e.anim.update()
@@ -459,34 +440,13 @@ function init_enemy(x, y, width, height, speed, type)
         end
     end
 
-    function e.attack_execute()
-        local total_time = 0
-        for i = 1, #e.attack_seq do
-            if i == 1 then
-                total_time = 0
-            end
-            local curr_attack = e.attack_seq[i]
-            total_time += curr_attack.duration
-            if e.attack_start_time > time() - total_time then
-                e.x += curr_attack.x_mod
-                e.y += curr_attack.y_mod
-                if curr_attack.anim then
-                    e:set_anim(curr_attack.anim, true)
-                end
-                break
-            elseif i == #e.attack_seq and e.attack_start_time < time() - total_time then
-                e.attacking = false
-            end
-        end
-    end
-
     return e
 end
 
 --////////////////////
 --sprites + animation
 --////////////////////
-function new_composite_sprite(width, height, sprites, duration, x_origin, y_origin, flip_x)
+function new_composite_sprite(width, height, sprites, x_origin, y_origin, flip_x)
     local s = {}
     s.width = width
     s.height = height
@@ -494,7 +454,6 @@ function new_composite_sprite(width, height, sprites, duration, x_origin, y_orig
     s.flip_x = flip_x or false
     s.x_origin = x_origin or 1
     s.y_origin = y_origin or 1
-    s.duration = duration or nil
 
     function s.draw(x,y)
         for index_y = 1, s.height do
@@ -513,102 +472,100 @@ function new_composite_sprite(width, height, sprites, duration, x_origin, y_orig
     return s
 end
 
+function new_frame(sprite, args)
+    local args = args or {dur = 0,
+                          xmod = 0,
+                          ymod = 0}
+
+    local f = {
+        spr = sprite,
+        dur = args.dur,
+        xmod = args.xmod,
+        ymod = args.ymod
+    }
+    
+    return f
+end
+
 function new_anim(frame_set, args)
-    local args = args or {speed = default_anim_speed,
-                          loop = true,
+    local args = args or {loop = false,
                           flip_x = false,
-                          log = false}
+                          object = nil,
+                          is_attack = false}
 
     local a = {}
     a.frame_set = frame_set
     a.frame_index = 1
-    a.speed = args.speed
     a.done = false
-    a.timer = 0
     a.flip_x = args.flip_x
     a.loop = args.loop
     a.start_time = time()
     a.running_duration = nil
-    a.log = args.log
+    a.object = args.object
+    a.is_attack = args.is_attack
 
     function a.reset()
-        a.timer = 0
         a.frame_index=1
         a.done=false
         a.start_time = time()
+        a.running_duration = nil
+        if a.is_attack then 
+            a.object.attacking = true
+        end
+    end
+
+    function a.set_obj(obj)
+        a.object = obj
     end
 
     function a.get_cur_frame()
         return a.frame_set[a.frame_index]
     end
---function e.attack_execute()
---        local total_time = 0
---        for i = 1, #e.attack_seq do
---            if i == 1 then
---                total_time = 0
---            end
---            local curr_attack = e.attack_seq[i]
---            total_time += curr_attack.duration
---            if e.attack_start_time > time() - total_time then
---                e.x += curr_attack.x_mod
---                e.y += curr_attack.y_mod
---                if curr_attack.anim then
---                    e:set_anim(curr_attack.anim, true)
---                end
---                break
---            elseif i == #e.attack_seq and e.attack_start_time < time() - total_time then
---                e.attacking = false
---            end
---        end
---    end
 
     function a.update()
         if (a.done) return
 
-        -- TODO incorporate duration system, in tandem with speed system
-        -- TODO update x and y along with animations
-        a.timer += a.speed
-         
         local curr_frame = a.get_cur_frame()
         local duration = 0
-        if type(curr_frame) == 'number' then
-            duration = 1
-        else
-            duration = curr_frame.duration
+
+        if type(curr_frame) ~= 'number' then
+            duration = curr_frame.dur
         end
+
         if not a.running_duration then
             a.running_duration = duration
         end
 
-        if a.log then
-            log(time() * a.speed)
-            log(a.start_time + a.running_duration)
-        end
-        if time() * a.speed > a.start_time + a.running_duration then
+        if time() > a.start_time + a.running_duration then
             a.frame_index += 1
-            a.running_duration += a.get_cur_frame().duration
-        end
-        --while a.timer >= 1 do -- TODO shouldnt this just be greater than?
-         --   a.frame_index += 1
-          --  a.timer -= 1 -- TODO should this be getting set to 0 instead?
-        --end
-
-        if a.frame_index > #a.frame_set then
-            if a.loop then
-                a.reset()
-            else
-                a.done = true
+            if a.frame_index > #a.frame_set then
+                if a.loop then
+                    a.reset()
+                else
+                    a.done = true
+                    if a.is_attack then
+                        a.object.attacking = false
+                    end
+                end
+                return
             end
+            a.running_duration += a.get_cur_frame().dur
+        end
+
+        if a.object then
+            a.object.x += curr_frame.xmod
+            a.object.y += curr_frame.ymod
         end
     end
 
     function a.draw_frame(x,y)
-        if type(a.get_cur_frame()) == "number" then
-            -- draw stand alone sprite
-            spr(a.get_cur_frame(), x, y, 1, 1, a.flip_x)
+        c_frame = a.get_cur_frame()
+        if type(c_frame) == "number" then
+            spr(c_frame, x, y, 1, 1, a.flip_x)
+        elseif type(c_frame.spr) == 'number' then
+            spr(c_frame.spr, x, y, 1, 1, a.flip_x)
         else
-            -- draw composite sprite
-            a.get_cur_frame().draw(x, y)
+            c_frame.spr.draw(x,y) 
         end
     end
 
