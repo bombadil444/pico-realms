@@ -23,102 +23,104 @@ function _init()
     --////////////////////
     --composite sprites
     --////////////////////
-    sprites['worm'] = new_composite_sprite(1,2,{38,54})
-    sprites['knight_queen'] = new_composite_sprite(2,4,{64,65,80,81,96,97,112,113})
+    sprites['worm'] = _composite_sprite(1,2,{38,54})
+    sprites['knight_queen'] = _composite_sprite(2,4,{64,65,80,81,96,97,112,113})
 
 
     --////////////////////
     --animations
     --////////////////////
-    anims['player_down']  = new_anim({9})
-    anims['player_right'] = new_anim({10})
-    anims['player_left']  = new_anim({12})
-    anims['player_up']  = new_anim({11})
+    anims['player_down']  = _anim({9})
+    anims['player_right'] = _anim({10})
+    anims['player_left']  = _anim({12})
+    anims['player_up']  = _anim({11})
 
-    anims['player_attack_down'] = new_anim({new_frame(new_composite_sprite(1,2,{9,25})),
-                                           new_frame(new_composite_sprite(1,2,{9,26})),
-                                           new_frame(new_composite_sprite(1,2,{9,27})),
-                                           new_frame(new_composite_sprite(1,2,{9,28}))})
+    anims['player_attack_down'] = _anim(
+        _frame(_composite_sprite(1,2,{9,25}))
+        .next({9,26})
+        .next({9,27})
+        .next({9,28}).set
+    )
 
-    anims['player_attack_right'] = new_anim({new_frame(new_composite_sprite(2,1,{29,30})),
-                                            new_frame(new_composite_sprite(2,1,{32,33})),
-                                            new_frame(new_composite_sprite(2,1,{32,34}))})
+    anims['player_attack_right'] = _anim({_frame(_composite_sprite(2,1,{29,30})),
+                                            _frame(_composite_sprite(2,1,{32,33})),
+                                            _frame(_composite_sprite(2,1,{32,34}))})
 
-    anims['player_attack_left'] = new_anim({new_frame(new_composite_sprite(2,1,{30,29},2,1,true)),
-                                            new_frame(new_composite_sprite(2,1,{33,32},2,1,true)),
-                                            new_frame(new_composite_sprite(2,1,{34,32},2,1,true))})
+    anims['player_attack_left'] = _anim({_frame(_composite_sprite(2,1,{30,29},2,1,true)),
+                                            _frame(_composite_sprite(2,1,{33,32},2,1,true)),
+                                            _frame(_composite_sprite(2,1,{34,32},2,1,true))})
 
-    anims['player_attack_up'] = new_anim({new_frame(new_composite_sprite(1,2,{35,11},1,2)),
-                                         new_frame(new_composite_sprite(1,2,{36,11},1,2)),
-                                         new_frame(new_composite_sprite(1,2,{37,11},1,2))})
+    anims['player_attack_up'] = _anim({_frame(_composite_sprite(1,2,{35,11},1,2)),
+                                         _frame(_composite_sprite(1,2,{36,11},1,2)),
+                                         _frame(_composite_sprite(1,2,{37,11},1,2))})
 
-    anims['worm_down'] = new_anim({sprites['worm'],
-                                   new_frame(new_composite_sprite(1,2,{38,55}))},
+    anims['worm_down'] = _anim({sprites['worm'],
+                                   _frame(_composite_sprite(1,2,{38,55}))},
                                   {loop=true})
 
-    anims['knight_queen_down'] = new_anim({sprites['knight_queen_down']})
+    anims['knight_queen_down'] = _anim({sprites['knight_queen_down']})
 
-    anims['shadow_down'] = new_anim({66})
-    anims['shadow_up'] = new_anim({68})
-    anims['shadow_right'] = new_anim({67})
-    anims['shadow_left'] = new_anim({70})
-    anims['shadow_attack_down'] = new_anim({new_frame(66, {dur=0.4, xmod=0, ymod=-0.3}),
-                                            new_frame(new_composite_sprite(1,2,{66,82}),
+    anims['shadow_down'] = _anim({66})
+    anims['shadow_up'] = _anim({68})
+    anims['shadow_right'] = _anim({67})
+    anims['shadow_left'] = _anim({70})
+    anims['shadow_attack_down'] = _anim({_frame(66, {dur=0.4, xmod=0, ymod=-0.3}),
+                                            _frame(_composite_sprite(1,2,{66,82}),
                                                     {dur=0.1, xmod=0, ymod=4}),
-                                            new_frame(new_composite_sprite(1,2,{66,83}),
+                                            _frame(_composite_sprite(1,2,{66,83}),
                                                     {dur=0, xmod=0, ymod=3}),
-                                            new_frame(new_composite_sprite(1,2,{66,84}),
+                                            _frame(_composite_sprite(1,2,{66,84}),
                                                     {dur=0, xmod=0, ymod=3}),
-                                            new_frame(new_composite_sprite(1,2,{66,85}),
+                                            _frame(_composite_sprite(1,2,{66,85}),
                                                     {dur=0, xmod=0, ymod=3}),
-                                            new_frame(66, {dur=1, xmod=0, ymod=0})},
+                                            _frame(66, {dur=1, xmod=0, ymod=0})},
                                             {is_attack = true})
 
-    anims['shadow_attack_up'] = new_anim({new_frame(68, {dur=0.4, xmod=0, ymod=0.3}),
-                                            new_frame(new_composite_sprite(1,2,{35,68}),
+    anims['shadow_attack_up'] = _anim({_frame(68, {dur=0.4, xmod=0, ymod=0.3}),
+                                            _frame(_composite_sprite(1,2,{35,68}),
                                                     {dur=0.1, xmod=0, ymod=-4}),
-                                            new_frame(new_composite_sprite(1,2,{36,68}),
+                                            _frame(_composite_sprite(1,2,{36,68}),
                                                     {dur=0, xmod=0, ymod=-3}),
-                                            new_frame(new_composite_sprite(1,2,{37,68}),
+                                            _frame(_composite_sprite(1,2,{37,68}),
                                                     {dur=0, xmod=0, ymod=-3}),
-                                            new_frame(68, {dur=1, xmod=0, ymod=0})},
+                                            _frame(68, {dur=1, xmod=0, ymod=0})},
                                             {is_attack = true})
 
 
-    anims['shadow_attack_right'] = new_anim({new_frame(67, {dur=0.5, xmod=-0.3, ymod=0}),
-                                            new_frame(new_composite_sprite(2,1,{98,99}),
+    anims['shadow_attack_right'] = _anim({_frame(67, {dur=0.5, xmod=-0.3, ymod=0}),
+                                            _frame(_composite_sprite(2,1,{98,99}),
                                                     {dur=0.1, xmod=4, ymod=0}),
-                                            new_frame(new_composite_sprite(2,1,{100,33}),
+                                            _frame(_composite_sprite(2,1,{100,33}),
                                                     {dur=0, xmod=3, ymod=0}),
-                                            new_frame(new_composite_sprite(2,1,{100,34}),
+                                            _frame(_composite_sprite(2,1,{100,34}),
                                                     {dur=0, xmod=3, ymod=0}),
-                                            new_frame(67, {dur=1})},
+                                            _frame(67, {dur=1})},
                                             {is_attack = true})
 
-    anims['shadow_attack_left'] = new_anim({new_frame(67, {dur=0.5, xmod=0.3, ymod=0}),
-                                            new_frame(new_composite_sprite(2,1,{99,98},2,1,true),
+    anims['shadow_attack_left'] = _anim({_frame(67, {dur=0.5, xmod=0.3, ymod=0}),
+                                            _frame(_composite_sprite(2,1,{99,98},2,1,true),
                                                     {dur=0.1, xmod=-4, ymod=0}),
-                                            new_frame(new_composite_sprite(2,1,{33,100},2,1,true),
+                                            _frame(_composite_sprite(2,1,{33,100},2,1,true),
                                                     {dur=0, xmod=-3, ymod=0}),
-                                            new_frame(new_composite_sprite(2,1,{34,100},2,1,true),
+                                            _frame(_composite_sprite(2,1,{34,100},2,1,true),
                                                     {dur=0, xmod=-3, ymod=0}),
-                                            new_frame(67, {dur=1})},
+                                            _frame(67, {dur=1})},
                                             {is_attack = true, flip_x=true})
 
-    anims['shadow_teleport'] = new_anim({new_frame(71, {dur=0.1}),
-                                         new_frame(72, {dur=0.1}),
-                                         new_frame(73, {dur=0.1}),
-                                         new_frame(0, {dur=1, xpos=20, ypos=0}),
-                                         new_frame(74, {dur=0.1}),
-                                         new_frame(75, {dur=0.1}),
-                                         new_frame(74, {dur=0.1}),
-                                         new_frame(75, {dur=0.1}),
-                                         new_frame(new_composite_sprite(2,1,{99,98},2,1,true)),
-                                         new_frame(new_composite_sprite(2,1,{33,100},2,1,true)),
-                                         new_frame(new_composite_sprite(2,1,{34,100},2,1,true)),
-                                         new_frame(70, {dur=1})},
+    anims['shadow_teleport'] = _anim({_frame(71, {dur=0.1}),
+                                         _frame(72, {dur=0.1}),
+                                         _frame(73, {dur=0.1}),
+                                         _frame(0, {dur=1, xpos=20, ypos=0}),
+                                         _frame(74, {dur=0.1}),
+                                         _frame(75, {dur=0.1}),
+                                         _frame(74, {dur=0.1}),
+                                         _frame(75, {dur=0.1}),
+                                         _frame(_composite_sprite(2,1,{99,98},2,1,true)),
+                                         _frame(_composite_sprite(2,1,{33,100},2,1,true)),
+                                         _frame(_composite_sprite(2,1,{34,100},2,1,true)),
+                                         _frame(70, {dur=1})},
                                          {is_attack = true})
- 
+
     init_objects()
 
     anims['shadow_attack_down'].set_obj(enemy)
@@ -157,8 +159,8 @@ function _draw()
 end
 
 function init_objects()
-    player = new_player(19, 7)
-    enemy = new_enemy('shadow', 25, 8)
+    player = _player(19, 7)
+    enemy = _enemy('shadow', 25, 8)
 end
 
 function draw_hud()
@@ -263,7 +265,7 @@ end
 --//////////////
 --player
 --//////////////
-function new_player(x, y)
+function _player(x, y)
     local p = init_object(x, y, 5, 7, 1.3, 5)
 
     p.anim = anims['player_down']
@@ -396,7 +398,7 @@ end
 --//////////////////
 --enemy
 --//////////////////
-function new_enemy(enem_type, x, y)
+function _enemy(enem_type, x, y)
     if enem_type == 'worm' then
         return init_enemy(x,y,1,2,0,enem_type)
     elseif enem_type == 'knight_queen' then
@@ -481,7 +483,7 @@ function init_enemy(x, y, width, height, speed, type)
             e.dy = -1
             e.facing = 'up'
         end
- 
+
         if px > ex then
             e.dx = 1
             e.facing = 'right'
@@ -512,7 +514,7 @@ end
 --////////////////////
 --sprites + animation
 --////////////////////
-function new_composite_sprite(width, height, sprites, x_origin, y_origin, flip_x)
+function _composite_sprite(width, height, sprites, x_origin, y_origin, flip_x)
     local s = {}
     s.width = width
     s.height = height
@@ -538,7 +540,7 @@ function new_composite_sprite(width, height, sprites, x_origin, y_origin, flip_x
     return s
 end
 
-function new_frame(sprite, args)
+function _frame(sprite, args)
     local args = args or {dur = 0,
                           xmod = 0,
                           ymod = 0}
@@ -549,13 +551,36 @@ function new_frame(sprite, args)
         xmod = args.xmod,
         ymod = args.ymod,
         xpos = args.xpos,
-        ypos = args.ypos
+        ypos = args.ypos,
+        set = {}
     }
-    
+
+    f.set = {f}
+
+    function f.next(sprites, width, height, x_origin, y_origin, flip_x)
+        local spr = f.spr
+        local set = f.set
+
+        local w = width or spr.width
+        local h = height or spr.height
+        local s = sprites or spr.sprights
+        local xo = x_origin or spr.x_origin
+        local yo = y_origin or spr.y_origin
+        local fx = flip_x or spr.flip_x
+
+        local next_frame = _frame(
+            _composite_sprite(w, h, s, xo, yo, fx))
+
+        set[#set+1] = next_frame
+        next_frame.set = set
+
+        return next_frame
+    end
+
     return f
 end
 
-function new_anim(frame_set, args)
+function _anim(frame_set, args)
     local args = args or {loop = false,
                           flip_x = false,
                           object = nil,
@@ -577,7 +602,7 @@ function new_anim(frame_set, args)
         a.done=false
         a.start_time = time()
         a.running_duration = nil
-        if a.is_attack then 
+        if a.is_attack then
             a.object.attacking = true
         end
     end
@@ -623,7 +648,7 @@ function new_anim(frame_set, args)
         if a.object and curr_frame.xmod and curr_frame.ymod then
             a.object.x += curr_frame.xmod
             a.object.y += curr_frame.ymod
-        elseif a.object and curr_frame.xpos and curr_frame.ypos then 
+        elseif a.object and curr_frame.xpos and curr_frame.ypos then
             a.object.x = player.x + curr_frame.xpos
             a.object.y = player.y + curr_frame.ypos
         end
@@ -636,7 +661,7 @@ function new_anim(frame_set, args)
         elseif type(c_frame.spr) == 'number' then
             spr(c_frame.spr, x, y, 1, 1, a.flip_x)
         else
-            c_frame.spr.draw(x,y) 
+            c_frame.spr.draw(x,y)
         end
     end
 
