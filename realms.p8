@@ -636,9 +636,7 @@ function _anim(frame_set, args)
         local curr_frame = a.get_cur_frame()
         local duration = 0
 
-        if type(curr_frame) ~= 'number' then
-            duration = curr_frame.dur
-        end
+        duration = curr_frame.dur
 
         if not a.running_duration then
             a.running_duration = duration
@@ -671,13 +669,7 @@ function _anim(frame_set, args)
 
     function a.draw_frame(x,y)
         c_frame = a.get_cur_frame()
-        if type(c_frame) == "number" then
-            spr(c_frame, x, y, 1, 1, a.flip_x)
-        elseif type(c_frame.spr) == 'number' then
-            spr(c_frame.spr, x, y, 1, 1, a.flip_x)
-        else
-            c_frame.spr.draw(x,y)
-        end
+        c_frame.spr.draw(x,y)
     end
 
     return a
