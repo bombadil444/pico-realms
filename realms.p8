@@ -74,55 +74,55 @@ function _init()
     anims['shadow_left'] = _anim(_frame(_sprite(1,1,{70})).set)
 
     anims['shadow_attack_down'] = _anim(
-        _frame(_sprite(1,1,{66}), {dur=0.4, xmod=0, ymod=-0.3})
-        .next({66,82}, {dur=0.1, xmod=0, ymod=4}, 1, 2)
-        .next({66,83}, {dur=0, xmod=0, ymod=3})
-        .next({66,84}, {dur=0, xmod=0, ymod=3})
-        .next({66,85}, {dur=0, xmod=0, ymod=3})
-        .next({66}, {dur=1, xmod=0, ymod=0}, 1, 1).set,
+        _frame(_sprite(1,1,{66}), {dur=0.4, ymod=-0.3})
+        .next({66,82}, {dur=0.1, ymod=4, width=1, height=2})
+        .next({66,83}, {dur=0, ymod=3})
+        .next({66,84})
+        .next({66,85})
+        .next({66}, {dur=1, ymod=0, height=1}).set,
         {is_attack = true}
     )
 
     anims['shadow_attack_up'] = _anim(
-        _frame(_sprite(1,1,{68}), {dur=0.4, xmod=0, ymod=0.3})
-        .next({35,68}, {dur=0.1, xmod=0, ymod=-4}, 1, 2)
-        .next({36,68}, {dur=0, xmod=0, ymod=-3})
-        .next({37,68}, {dur=0, xmod=0, ymod=-3})
-        .next({68}, {dur=1, xmod=0, ymod=0}, 1, 1).set,
+        _frame(_sprite(1,1,{68}), {dur=0.4, ymod=0.3})
+        .next({35,68}, {dur=0.1, ymod=-4, height=2})
+        .next({36,68}, {dur=0, ymod=-3})
+        .next({37,68})
+        .next({68}, {dur=1, ymod=0, height=1}).set,
         {is_attack = true}
     )
 
     anims['shadow_attack_right'] = _anim(
-        _frame(_sprite(1,1,{67}), {dur=0.5, xmod=-0.3, ymod=0})
-        .next({98,99}, {dur=0.1, xmod=4, ymod=0}, 2, 1)
-        .next({100,33}, {dur=0, xmod=3, ymod=0})
-        .next({100,34}, {dur=0, xmod=3, ymod=0})
-        .next({67}, {dur=1, xmod=0, ymod=0}, 1, 1).set,
+        _frame(_sprite(1,1,{67}), {dur=0.5, xmod=-0.3})
+        .next({98,99}, {dur=0.1, xmod=4, width=2})
+        .next({100,33}, {dur=0, xmod=3})
+        .next({100,34})
+        .next({67}, {dur=1, xmod=0, width=1}).set,
         {is_attack = true}
     )
 
     anims['shadow_attack_left'] = _anim(
-        _frame(_sprite(1,1,{70}), {dur=0.5, xmod=0.3, ymod=0})
-        .next({99,98}, {dur=0.1, xmod=-4, ymod=0}, 2, 1, 2, 1, true)
-        .next({33,100}, {dur=0, xmod=-3, ymod=0})
-        .next({34,100}, {dur=0, xmod=-3, ymod=0})
-        .next({70}, {dur=1, xmod=0, ymod=0}, 1, 1, 1, 1, false).set,
+        _frame(_sprite(1,1,{70}), {dur=0.5, xmod=0.3})
+        .next({99,98}, {dur=0.1, xmod=-4, width=2, x_origin=2, flip_x=true})
+        .next({33,100}, {dur=0, xmod=-3})
+        .next({34,100})
+        .next({70}, {dur=1, xmod=0, width=1, x_origin=1, flip_x=false}).set,
         {is_attack = true, flip_x=true}
     )
 
     anims['shadow_teleport'] = _anim(
         _frame(_sprite(1,1,{71}), {dur=0.1})
         .next({72}, {dur=0.1})
-        .next({73}, {dur=0.1})
-        .next({0}, {dur=1, xpos=20, ypos=0})
+        .next({73})
+        .next({0}, {dur=1, movement='pos', xpos=20})
         .next({74}, {dur=0.1})
-        .next({75}, {dur=0.1})
-        .next({74}, {dur=0.1})
-        .next({75}, {dur=0.1})
-        .next({99, 98}, nil, 2, 1, 2, 1, true)
+        .next({75})
+        .next({74})
+        .next({75})
+        .next({99, 98}, {dur=0, width=2, x_origin=2, flip_x=true})
         .next({33, 100})
         .next({34, 100})
-        .next({70}, {dur=1}, 1, 1, 1, 1, false).set,
+        .next({70}, {dur=1, width=1, x_origin=1, flip_x=false}).set,
         {is_attack = true}
     )
 
@@ -426,7 +426,7 @@ function init_shadow(x, y, width, height, speed)
             elseif round(shad.y, 0) == round(p.y, 0) and shad.x > p.x and shad.x < p.x + 50 then
                 shad:set_anim(anims['shadow_attack_left'])
             elseif round(shad.y, 0) == round(p.y, 0) and shad.x > p.x - 50 and shad.x < p.x then
-                shad:set_anim(anims['shadow_attack_right'])
+                shad:set_anim(anims['shadow_teleport'])
             end
         end
     end
@@ -546,45 +546,52 @@ function _sprite(width, height, sprites, x_origin, y_origin, flip_x)
 end
 
 function _frame(sprite, args)
-    local args = args or {dur = 0,
-                          xmod = 0,
-                          ymod = 0}
+    local args = args or {}
 
     local f = {
         spr = sprite,
-        dur = args.dur,
-        xmod = args.xmod,
-        ymod = args.ymod,
-        xpos = args.xpos,
-        ypos = args.ypos,
+        dur = args.dur or 0,
+        movement = args.movement or 'mod',
+        xmod = args.xmod or 0,
+        ymod = args.ymod or 0,
+        xpos = args.xpos or 0,
+        ypos = args.ypos or 0,
         set = {}
     }
 
     f.set = {f}
 
-    function f.next(sprites, args, width, height, x_origin, y_origin, flip_x)
-        local args = args or {dur = 0,
-                              xmod = 0,
-                              ymod = 0}
-
+    function f.next(sprites, args)
         local spr = f.spr
         local set = f.set
 
-        local w = width or spr.width
-        local h = height or spr.height
+        local args = args or {}
+
         local s = sprites or spr.sprights
-        local xo = x_origin or spr.x_origin
-        local yo = y_origin or spr.y_origin
+
+        local w = args.width or spr.width
+        local h = args.height or spr.height
+        local xo = args.x_origin or spr.x_origin
+        local yo = args.y_origin or spr.y_origin
 
         local fx
-        if type(flip_x) == 'boolean' then
-            fx = flip_x
+        if type(args.flip_x) == 'boolean' then
+            fx = args.flip_x
         else
             fx = spr.flip_x
         end
 
+        local frame_args = {
+            dur = args.dur or spr.dur,
+            xmod = args.xmod or spr.xmod,
+            ymod = args.ymod or spr.ymod,
+            xpos = args.xpos or spr.xpos,
+            ypos = args.ypos or spr.ypos,
+            movement=args.movement or spr.movement
+        }
+
         local next_frame = _frame(
-            _sprite(w, h, s, xo, yo, fx), args)
+            _sprite(w, h, s, xo, yo, fx), frame_args)
 
         set[#set+1] = next_frame
         next_frame.set = set
@@ -658,12 +665,14 @@ function _anim(frame_set, args)
             a.running_duration += a.get_cur_frame().dur
         end
 
-        if a.object and curr_frame.xmod and curr_frame.ymod then
-            a.object.x += curr_frame.xmod
-            a.object.y += curr_frame.ymod
-        elseif a.object and curr_frame.xpos and curr_frame.ypos then
-            a.object.x = player.x + curr_frame.xpos
-            a.object.y = player.y + curr_frame.ypos
+        if a.object then
+            if curr_frame.movement == 'mod' then
+                a.object.x += curr_frame.xmod
+                a.object.y += curr_frame.ymod
+            elseif curr_frame.movement == 'pos' then
+                a.object.x = player.x + curr_frame.xpos
+                a.object.y = player.y + curr_frame.ypos
+            end
         end
     end
 
