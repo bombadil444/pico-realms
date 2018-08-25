@@ -135,6 +135,7 @@ function _init()
     anims['shadow_teleport'].set_obj(enemy)
 end
 
+
 function _update()
     handle_inputs()
     player.update()
@@ -144,6 +145,7 @@ function _update()
         init_objects()
     end
 end
+
 
 function _draw()
     cls()
@@ -163,10 +165,12 @@ function _draw()
     print_logs()
 end
 
+
 function init_objects()
     player = _player(19, 7)
     enemy = _enemy('shadow', 25, 8)
 end
+
 
 function draw_hud()
     local px = player.x
@@ -179,6 +183,7 @@ function draw_hud()
     end
 end
 
+
 function draw_health(x, y, spr_full, spr_empty, x_space, entity)
     for i = 0, entity.max_health - 1 do
         if i >= entity.health then
@@ -190,6 +195,7 @@ function draw_health(x, y, spr_full, spr_empty, x_space, entity)
         spr(hb_spr, x + x_space * i, y)
     end
 end
+
 
 function init_object(x, y, width, height, speed, health)
     local o = {
@@ -413,6 +419,7 @@ function _enemy(enem_type, x, y)
     end
 end
 
+
 function init_shadow(x, y, width, height, speed)
     local shad = init_enemy(x, y, width, height, speed, 'shadow')
 
@@ -433,6 +440,7 @@ function init_shadow(x, y, width, height, speed)
 
     return shad
 end
+
 
 function init_enemy(x, y, width, height, speed, type)
     local e = init_object(x, y, width * tile_size, height * tile_size, speed, 115)
@@ -516,6 +524,7 @@ function init_enemy(x, y, width, height, speed, type)
     return e
 end
 
+
 --////////////////////
 --sprites + animation
 --////////////////////
@@ -544,6 +553,7 @@ function _sprite(width, height, sprites, x_origin, y_origin, flip_x)
 
     return s
 end
+
 
 function _frame(sprite, args)
     local args = args or {}
@@ -602,11 +612,14 @@ function _frame(sprite, args)
     return f
 end
 
+
 function _anim(frame_set, args)
-    local args = args or {loop = false,
-                          flip_x = false,
-                          object = nil,
-                          is_attack = false}
+    local args = args or {
+        loop = false,
+        flip_x = false,
+        object = nil,
+        is_attack = false
+    }
 
     local a = {}
     a.frame_set = frame_set
@@ -702,6 +715,7 @@ function handle_inputs()
     end
 end
 
+
 --collision detection
 function get_tile_type(x,y,tile_type)
     if tile_type == 1 and enemy.hurt_on_touch then
@@ -716,6 +730,7 @@ function get_tile_type(x,y,tile_type)
     end
 end
 
+
 function tile_type_area(x,y,w,h,tile_type)
     return
     get_tile_type(x,y,tile_type) or
@@ -724,6 +739,7 @@ function tile_type_area(x,y,w,h,tile_type)
     get_tile_type(x+w,y+h,tile_type)
 end
 
+
 --audio
 function play_sound(track)
     if sound_enabled then
@@ -731,14 +747,17 @@ function play_sound(track)
     end
 end
 
+
 function round(number, digits)
     local shift = 10 ^ digits
     return flr(number * shift + 0.5 ) / shift
 end
 
+
 function log(log_text)
     logs[#logs+1] = log_text
 end
+
 
 function print_logs()
     for i = 1, #logs do
@@ -746,6 +765,7 @@ function print_logs()
     end
     logs = {}
 end
+
 
 __gfx__
 000000001dd11dd1111111dddddddddd111111dddddddddd11111111dd111111dddddddd02222000022220000222200002222000000000000000000000000000
