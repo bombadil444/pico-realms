@@ -15,6 +15,7 @@ function _init()
     tile_size = 8
     sound_enabled = false
     --music(0,0,4)
+    slow = false
 
     sprites = {}
     anims = {}
@@ -137,9 +138,15 @@ end
 
 
 function _update()
-    handle_inputs()
-    player.update()
-    enemy.update()
+    local fps_limit = 1
+    if slow then
+        fps_limit = time()
+    end
+    if fps_limit % 1 == 0 then
+        handle_inputs()
+        player.update()
+        enemy.update()
+    end
 
     if player.dead then
         init_objects()
@@ -425,20 +432,37 @@ function init_shadow(x, y, width, height, speed)
 
     function shad.attack()
         local p = player
-        if not shad.attacking then
-            if round(shad.x, 0) == round(p.x, 0) and shad.y < p.y and shad.y > p.y - 50 then
-                shad:set_anim(anims['shadow_attack_down'])
-            elseif round(shad.x, 0) == round(p.x, 0) and shad.y > p.y and shad.y < p.y + 50 then
-                shad:set_anim(anims['shadow_attack_up'])
-            elseif round(shad.y, 0) == round(p.y, 0) and shad.x > p.x and shad.x < p.x + 50 then
-                shad:set_anim(anims['shadow_attack_left'])
-            elseif round(shad.y, 0) == round(p.y, 0) and shad.x > p.x - 50 and shad.x < p.x then
-                shad:set_anim(anims['shadow_teleport'])
-            end
+        local coeff = p.height / 2
+        local x_diff_abs = point_diff(p.x, shad.x, coeff, true)
+        local y_diff_abs = point_diff(p.y, shad.y, coeff, true)
+        local new_anim = ''
+
+        if x_diff_abs and point_diff(p.y, shad.y, 30, false) then
+            new_anim = 'shadow_attack_down'
+        elseif x_diff_abs and point_diff(shad.y, p.y, 30, false) then
+            new_anim = 'shadow_attack_up'
+        elseif y_diff_abs and point_diff(shad.x, p.x, 30, false) then
+            new_anim = 'shadow_attack_left'
+        elseif y_diff_abs and point_diff(p.x, shad.x, 30, false) then
+            new_anim = 'shadow_teleport'
+        else
+            return
         end
+
+        shad:set_anim(anims[new_anim])
     end
 
     return shad
+end
+
+
+function point_diff(a, b, coefficient, absolute)
+    local diff = round(a, 0) - round(b, 0)
+    if absolute then
+        return abs(diff) <= coefficient
+    else
+        return diff <= coefficient and diff >= 0
+    end
 end
 
 
@@ -455,10 +479,10 @@ function init_enemy(x, y, width, height, speed, type)
         if not e.dead then
             if not e.attacking then
                 e.move()
+                e.attack()
             end
             e.check_collisions()
             e.anim.update()
-            e.attack()
 
             if e.anim.done then
                 e.anim_lock = false
