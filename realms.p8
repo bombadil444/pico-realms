@@ -15,7 +15,8 @@ function _init()
     tile_size = 8
     sound_enabled = false
     --music(0,0,4)
-    slow = false
+    freeze = true
+    advance_frame = false
 
     sprites = {}
     anims = {}
@@ -138,14 +139,24 @@ end
 
 
 function _update()
-    local fps_limit = 1
-    if slow then
-        fps_limit = time()
+
+    if btnp(5) then
+        freeze = not freeze
     end
-    if fps_limit % 1 == 0 then
+
+    if btnp(4) and freeze then
+        advance_frame = true
+    end
+
+    log('p:'..round(player.x,0)..', '..round(player.y,0))
+    log('e:'..round(enemy.x,0)..', '..round(enemy.y,0))
+
+    if not freeze or (freeze and advance_frame) then
         handle_inputs()
         player.update()
         enemy.update()
+
+        if freeze then advance_frame = false end
     end
 
     if player.dead then
@@ -241,17 +252,23 @@ function init_object(x, y, width, height, speed, health)
         local sw = self.width
         local sh = self.height
 
+        local range = 0.75
+
+        local attacker_spr = attacker.anim.get_cur_frame().spr
+        local aw = attacker_spr.width * tile_size
+        local ah = attacker_spr.height * tile_size
+
         if attacker.attacking then
             if attacker.facing == 'left' then
                 if ax >= sx and
-                   ax <= sx + attacker.width * 2 and
+                   ax <= sx + aw * range and
                    ay <= sy + sh and
                    ay >= sy - sh then
                     return true
                 end
             elseif attacker.facing == 'right' then
                 if ax <= sx and
-                   ax >= sx - attacker.width * 2 and
+                   ax >= sx - aw * range and
                    ay <= sy + sh and
                    ay >= sy - sh then
                     return true
@@ -260,14 +277,14 @@ function init_object(x, y, width, height, speed, health)
                 if ax <= sx + sw and
                    ax >= sx - sw and
                    ay >= sy and
-                   ay <= sy + attacker.height * 2 then
+                   ay <= sy + ah * range then
                     return true
                 end
             elseif attacker.facing == 'down' then
                 if ax <= sx + sw and
                    ax >= sx - sw and
                    ay <= sy and
-                   ay >= sy - attacker.height * 2 then
+                   ay >= sy - ah * range then
                     return true
                 end
             end
@@ -288,7 +305,7 @@ function _player(x, y)
 
     p.anim = anims['player_down']
     p.invin_start_time = time()
-    p.invin_duration = 2
+    p.invin_duration = 3
 
     p.moving = false
     p.visible = true
@@ -467,7 +484,14 @@ end
 
 
 function init_enemy(x, y, width, height, speed, type)
-    local e = init_object(x, y, width * tile_size, height * tile_size, speed, 115)
+    local e = init_object(
+        x,
+        y,
+        width * tile_size,
+        height * tile_size,
+        speed,
+        115
+    )
 
     e.type = type
     e.anim = anims[e.type..'_'..e.facing]
@@ -513,10 +537,10 @@ function init_enemy(x, y, width, height, speed, type)
         local ex = round(e.x, 0)
         local ey = round(e.y, 0)
 
-        if py > ey + e.height / 2 then
+        if py > ey then
             e.dy = 1
             e.facing = 'down'
-        elseif py < ey + e.height / 2 then
+        elseif py < ey then
             e.dy = -1
             e.facing = 'up'
         end
@@ -728,13 +752,13 @@ end
 --inputs
 function handle_inputs()
     --set direction player wants to move in
-    if btn(⬅️)        then player.set_direction('left')
-       elseif btn(➡️) then player.set_direction('right')
-       elseif btn(⬆️) then player.set_direction('up')
-       elseif btn(⬇️) then player.set_direction('down')
+    if btn(0)        then player.set_direction('left')
+       elseif btn(1) then player.set_direction('right')
+       elseif btn(2) then player.set_direction('up')
+       elseif btn(3) then player.set_direction('down')
     end
 
-    if btnp(❎) then
+    if btnp(4) and not freeze then
         player.attack()
     end
 end
