@@ -111,7 +111,7 @@ function _init()
         .next({66,83}, {dur=0, ymod=3})
         .next({66,84})
         .next({66,85})
-        .next({66}, {dur=1, ymod=0, height=1}).set,
+        .next({66}, {dur=0.2, ymod=0, height=1}).set,
         {is_attack = true}
     )
 
@@ -120,7 +120,7 @@ function _init()
         .next({102,68}, {dur=0.1, ymod=-4, height=2})
         .next({102,68}, {dur=0, ymod=-3})
         .next({86,68})
-        .next({68}, {dur=1, ymod=0, height=1}).set,
+        .next({68}, {dur=0.2, ymod=0, height=1}).set,
         {is_attack = true}
     )
 
@@ -129,7 +129,7 @@ function _init()
         .next({98,99}, {dur=0.1, xmod=4, width=2})
         .next({100,103}, {dur=0, xmod=3})
         .next({100,101})
-        .next({67}, {dur=1, xmod=0, width=1}).set,
+        .next({67}, {dur=0.2, xmod=0, width=1}).set,
         {is_attack = true}
     )
 
@@ -138,7 +138,7 @@ function _init()
         .next({99,98}, {dur=0.1, xmod=-4, width=2, x_origin=2, flip_x=true})
         .next({103,100}, {dur=0, xmod=-3})
         .next({101,100})
-        .next({70}, {dur=1, xmod=0, width=1, x_origin=1, flip_x=false}).set,
+        .next({70}, {dur=0.2, xmod=0, width=1, x_origin=1, flip_x=false}).set,
         {is_attack = true, flip_x=true}
     )
 
@@ -154,7 +154,7 @@ function _init()
         .next({99, 98}, {dur=0, width=2, x_origin=2, flip_x=true})
         .next({33, 100})
         .next({34, 100})
-        .next({70}, {dur=1, width=1, x_origin=1, flip_x=false}).set,
+        .next({70}, {dur=0.2, width=1, x_origin=1, flip_x=false}).set,
         {is_attack = true}
     )
 
@@ -346,6 +346,7 @@ function _player(x, y)
 
     p.attack_held = false
     p.charge_start_time = 0
+    p.charge_modifier = 7
 
     local charge_threshold = 0.5
     local invin_duration = 3
@@ -377,7 +378,7 @@ function _player(x, y)
     end
 
     function p.adjust_speed()
-        if p.attack_held and p.speed > 0.3 then
+        if p.attack_held and p.speed > 0.8 then
             p.speed = p.speed - 0.1
         elseif not p.attack_held then
             p.speed = p.__speed
@@ -432,8 +433,16 @@ function _player(x, y)
         local orig_x = p.x
         local orig_y = p.y
 
-        local new_x = p.x + p.dx * p.speed
-        local new_y = p.y + p.dy * p.speed
+        local modifier
+        if p.attacking and p.attack_power ~= p.__attack_power then
+            p.set_direction(p.facing)
+            modifier = p.attack_power / p.charge_modifier
+        else
+            modifier = p.speed
+        end
+
+        local new_x = p.x + p.dx * modifier
+        local new_y = p.y + p.dy * modifier
 
         local solid_tile = tile_type_area(new_x, new_y, p.width, p.height, 0)
 
@@ -524,6 +533,10 @@ function init_shadow(x, y, width, height, speed)
     local shad = init_enemy(x, y, width, height, speed, 'shadow')
 
     function shad.attack()
+        if not shad.can_attack then
+            return
+        end
+
         local p = player
         local coeff = p.height / 2
         local x_diff_abs = point_diff(p.x, shad.x, coeff, true)
@@ -574,6 +587,10 @@ function init_enemy(x, y, width, height, speed, type)
     e.anim_lock = false
     e.hurt_on_touch = false
     e.attacking = false
+    e.can_attack = true
+    e.can_move = true
+    e.start_rest_time = 0
+    e.rest_duration = 0
 
     function e.update()
         if not e.dead then
@@ -584,7 +601,18 @@ function init_enemy(x, y, width, height, speed, type)
             e.check_collisions()
             e.anim.update()
 
+            if time() - e.start_rest_time > e.rest_duration then
+                e.can_move = true
+                e.can_attack = true
+                e.rest_duration = 0
+            end
+
             if e.anim.done then
+                if e.anim.is_attack then
+                    if e.type == 'shadow' then
+                        e.rest(1)
+                    end
+                end
                 e.anim_lock = false
                 e:set_anim(anims[e.type..'_'..e.facing])
             end
@@ -597,6 +625,13 @@ function init_enemy(x, y, width, height, speed, type)
         end
     end
 
+    function e.rest(duration)
+        e.start_rest_time = time()
+        e.rest_duration = duration
+        e.can_move = false
+        e.can_attack = false
+    end
+
     function e.check_collisions()
         local damage = e:collisions(player)
 
@@ -607,6 +642,10 @@ function init_enemy(x, y, width, height, speed, type)
     end
 
     function e.move()
+        if not e.can_move then
+            return
+        end
+
         local px = round(player.x, 0)
         local py = round(player.y, 0)
 
@@ -829,10 +868,12 @@ end
 function handle_inputs()
     local p = player
     --set direction player wants to move in
-    if btn(0)        then p.set_direction('left')
-       elseif btn(1) then p.set_direction('right')
-       elseif btn(2) then p.set_direction('up')
-       elseif btn(3) then p.set_direction('down')
+    if not p.attacking or p.attack_power == p.__attack_power then
+        if btn(0)        then p.set_direction('left')
+           elseif btn(1) then p.set_direction('right')
+           elseif btn(2) then p.set_direction('up')
+           elseif btn(3) then p.set_direction('down')
+        end
     end
 
     if not freeze then
